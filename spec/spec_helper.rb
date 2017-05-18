@@ -1,5 +1,20 @@
 require "bundler/setup"
 require "jsonb_query"
+require "pry"
+require "pry-nav"
+require "pry-doc"
+require "awesome_print"
+require "database_cleaner"
+require "yaml"
+
+class Product < ActiveRecord::Base
+  self.table_name = "products"
+  belongs_to :product_category
+end
+
+class ProductCategory < ActiveRecord::Base
+  has_many :products
+end
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -7,5 +22,30 @@ RSpec.configure do |config|
 
   config.expect_with :rspec do |c|
     c.syntax = :expect
+  end
+
+  config.expect_with :rspec do |expectations|
+    expectations.include_chain_clauses_in_custom_matcher_descriptions = true
+  end
+
+  config.mock_with :rspec do |mocks|
+    mocks.verify_partial_doubles = true
+  end
+
+  config.filter_run :focus
+  config.run_all_when_everything_filtered = true
+  config.disable_monkey_patching!
+  config.default_formatter = "doc" if config.files_to_run.one?
+  config.profile_examples = 0
+  config.order = :random
+  Kernel.srand config.seed
+
+  config.before :suite do
+    dbconfig = YAML.load(File.open("db/config.yml"))
+    ActiveRecord::Base.establish_connection(dbconfig["test"])
+  end
+
+  config.before do
+    DatabaseCleaner.clean_with(:truncation)
   end
 end

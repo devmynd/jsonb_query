@@ -1,0 +1,9 @@
+default: &default
+  adapter: postgresql
+  database: jsonb_query
+
+development:
+  <<: *default
+
+test:
+  <<: *default
